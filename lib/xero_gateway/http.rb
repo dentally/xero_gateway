@@ -21,7 +21,7 @@ module XeroGateway
       def http_request(client, method, url, body, params = {}, headers = {})
         # headers = {'Accept-Encoding' => 'gzip, deflate'}
 
-        headers = headers.merge!('charset' => 'utf-8')
+        headers = headers.merge!('charset' => 'utf-8', 'User-Agent' => 'Dentally')
 
         if method != :get
           headers['Content-Type'] ||= "application/x-www-form-urlencoded"
