@@ -153,7 +153,7 @@ module XeroGateway
         b.ContactGroups if self.contact_groups
         b.IsCustomer true if self.is_customer
         b.IsSupplier true if self.is_supplier
-        b.DefaultCurrency if self.default_currency
+        b.DefaultCurrency self.default_currency if self.default_currency
         b.Addresses {
           addresses.each { |address| address.to_xml(b) }
         } unless addresses.nil?
