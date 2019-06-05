@@ -39,7 +39,7 @@ module XeroGateway
     # All accessible fields
     attr_accessor :invoice_id, :invoice_number, :invoice_type, :invoice_status, :date, :due_date, :reference, :branding_theme_id,
                   :line_amount_types, :currency_code, :currency_rate, :payments, :fully_paid_on, :amount_due, :amount_paid, :amount_credited,
-                  :sent_to_contact, :url, :updated_date_utc
+                  :sent_to_contact, :url, :updated_date_utc, :expected_payment_date
     attr_writer   :contact, :line_items
 
     def initialize(params = {})
@@ -189,6 +189,7 @@ module XeroGateway
         b.Reference self.reference if self.reference
         b.BrandingThemeID self.branding_theme_id if self.branding_theme_id
         b.LineAmountTypes self.line_amount_types
+        b.ExpectedPaymentDate Invoice.format_date(self.expected_payment_date) if self.expected_payment_date
         b.LineItems {
           self.line_items.each do |line_item|
             line_item.to_xml(b)
@@ -212,6 +213,7 @@ module XeroGateway
           when "Date" then invoice.date = parse_date(element.text)
           when "DueDate" then invoice.due_date = parse_date(element.text)
           when "UpdatedDateUTC" then invoice.updated_date_utc = parse_date(element.text)
+          when "ExpectedPaymentDate" then invoice.expected_payment_date = parse_date(element.text)
           when "Status" then invoice.invoice_status = element.text
           when "Reference" then invoice.reference = element.text
           when "BrandingThemeID" then invoice.branding_theme_id = element.text
