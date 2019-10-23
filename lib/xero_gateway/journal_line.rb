@@ -78,7 +78,7 @@ module XeroGateway
       journal_line = JournalLine.new
       journal_line_element.children.each do |element|
         case(element.name)
-          when "LineAmount" then journal_line.line_amount = BigDecimal.new(element.text)
+          when "LineAmount" then journal_line.line_amount = BigDecimal(element.text)
           when "AccountCode" then journal_line.account_code = element.text
           when "JournalLineID" then journal_line.journal_line_id = element.text
           when "Description" then journal_line.description = element.text
