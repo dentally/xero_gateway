@@ -81,6 +81,18 @@ class InvoiceTest < Test::Unit::TestCase
       assert_equal 27, result_invoice.line_items.first.discount_rate
     end
 
+    should "work with line_item discount amounts" do
+      invoice = create_test_invoice
+      invoice.line_items.first.discount_amount = 50
+      invoice_as_xml = invoice.to_xml
+
+      invoice_element = REXML::XPath.first(REXML::Document.new(invoice_as_xml), "/Invoice")
+      result_invoice = XeroGateway::Invoice.from_xml(invoice_element)
+
+      assert_equal(invoice, result_invoice)
+      assert_equal(50, result_invoice.line_items.first.discount_amount)
+    end
+
     should "handle paid-on date" do
       invoice = create_test_invoice(:fully_paid_on => Date.yesterday)
       invoice_element = REXML::XPath.first(REXML::Document.new(invoice.to_xml), "/Invoice")
@@ -175,7 +187,7 @@ class InvoiceTest < Test::Unit::TestCase
     assert_equal(quantity * line_item.unit_amount, line_item.line_amount)
   end
 
-  def test_line_amount_discount_calculation
+  def test_line_amount_discount_rate_calculation
     invoice = create_test_invoice
     line_item = invoice.line_items.first
     line_item.discount_rate = 12.5
@@ -193,6 +205,26 @@ class InvoiceTest < Test::Unit::TestCase
     line_item.quantity = quantity
     assert_not_equal(expected_amount, line_item.line_amount)
     assert_equal(quantity * line_item.unit_amount * 0.875, line_item.line_amount)
+  end
+
+  def test_line_amount_discount_amount_calculation
+    invoice = create_test_invoice
+    line_item = invoice.line_items.first
+    line_item.discount_amount = 20
+
+    # Make sure that everything adds up to begin with.
+    expected_amount = (line_item.quantity * line_item.unit_amount) - 20
+    assert_equal(expected_amount, line_item.line_amount)
+
+    # Change the line_amount and check that it doesn't modify anything.
+    line_item.line_amount = expected_amount * 10
+    assert_equal(expected_amount, line_item.line_amount)
+
+    # Change the quantity and check that the line_amount has been updated.
+    quantity = line_item.quantity + 2
+    line_item.quantity = quantity
+    assert_not_equal(expected_amount, line_item.line_amount)
+    assert_equal((quantity * line_item.unit_amount) - 20, line_item.line_amount)
   end
 
   # Ensure that the totalling methods don't raise exceptions, even when

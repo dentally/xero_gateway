@@ -10,7 +10,7 @@ module XeroGateway
     attr_reader :errors
 
     # All accessible fields
-    attr_accessor :line_item_id, :description, :quantity, :unit_amount, :discount_rate, :item_code, :tax_type, :tax_amount, :account_code, :tracking
+    attr_accessor :line_item_id, :description, :quantity, :unit_amount, :discount_amount, :discount_rate, :item_code, :tax_type, :tax_amount, :account_code, :tracking
 
     def initialize(params = {})
       @errors ||= []
@@ -71,6 +71,7 @@ module XeroGateway
 
       total = quantity * unit_amount
       total = total * (1 - (discount_rate / BigDecimal(100))) if discount_rate
+      total = total - discount_amount if discount_amount
       total
     end
 
@@ -83,6 +84,7 @@ module XeroGateway
         b.TaxType tax_type if tax_type
         b.TaxAmount tax_amount if tax_amount
         b.LineAmount line_amount if line_amount
+        b.DiscountAmount discount_amount if discount_amount
         b.DiscountRate discount_rate if discount_rate
         b.AccountCode account_code if account_code
         if has_tracking?
@@ -110,6 +112,7 @@ module XeroGateway
           when "TaxType" then line_item.tax_type = element.text
           when "TaxAmount" then line_item.tax_amount = BigDecimal(element.text)
           when "LineAmount" then line_item.line_amount = BigDecimal(element.text)
+          when "DiscountAmount" then line_item.discount_amount = BigDecimal(element.text)
           when "DiscountRate" then line_item.discount_rate = BigDecimal(element.text)
           when "AccountCode" then line_item.account_code = element.text
           when "Tracking" then
@@ -122,7 +125,7 @@ module XeroGateway
     end
 
     def ==(other)
-      [:description, :quantity, :unit_amount, :tax_type, :tax_amount, :line_amount, :discount_rate, :account_code, :item_code].each do |field|
+      [:description, :quantity, :unit_amount, :tax_type, :tax_amount, :line_amount, :discount_amount, :discount_rate, :account_code, :item_code].each do |field|
         return false if send(field) != other.send(field)
       end
       return true
