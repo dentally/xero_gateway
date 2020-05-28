@@ -71,7 +71,6 @@ module XeroGateway
 
       total = quantity * unit_amount
       total = total * (1 - (discount_rate / BigDecimal(100))) if discount_rate
-      total = total - discount_amount if discount_amount
       total
     end
 
@@ -83,7 +82,7 @@ module XeroGateway
         b.ItemCode item_code if item_code
         b.TaxType tax_type if tax_type
         b.TaxAmount tax_amount if tax_amount
-        b.LineAmount line_amount if line_amount
+        b.LineAmount line_amount if line_amount && !discount_amount
         b.DiscountAmount discount_amount if discount_amount
         b.DiscountRate discount_rate if discount_rate
         b.AccountCode account_code if account_code

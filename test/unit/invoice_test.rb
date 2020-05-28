@@ -207,26 +207,6 @@ class InvoiceTest < Test::Unit::TestCase
     assert_equal(quantity * line_item.unit_amount * 0.875, line_item.line_amount)
   end
 
-  def test_line_amount_discount_amount_calculation
-    invoice = create_test_invoice
-    line_item = invoice.line_items.first
-    line_item.discount_amount = 20
-
-    # Make sure that everything adds up to begin with.
-    expected_amount = (line_item.quantity * line_item.unit_amount) - 20
-    assert_equal(expected_amount, line_item.line_amount)
-
-    # Change the line_amount and check that it doesn't modify anything.
-    line_item.line_amount = expected_amount * 10
-    assert_equal(expected_amount, line_item.line_amount)
-
-    # Change the quantity and check that the line_amount has been updated.
-    quantity = line_item.quantity + 2
-    line_item.quantity = quantity
-    assert_not_equal(expected_amount, line_item.line_amount)
-    assert_equal((quantity * line_item.unit_amount) - 20, line_item.line_amount)
-  end
-
   # Ensure that the totalling methods don't raise exceptions, even when
   # invoice.line_items is empty.
   def test_totalling_methods_when_line_items_empty
