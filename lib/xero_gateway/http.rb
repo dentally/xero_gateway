@@ -61,29 +61,29 @@ module XeroGateway
         logger.info("\n== [#{Time.now.to_s}] XeroGateway Request: #{uri.request_uri} ") if self.logger
 
         response = case method
-          when :get   then    client.get(uri.request_uri, headers)
-          when :post  then    client.post(uri.request_uri, { :xml => body }, headers)
-          when :put   then    client.put(uri.request_uri, { :xml => body }, headers)
+          when :get  then client.get(uri.request_uri, headers)
+          when :post then client.post(uri.request_uri, { :xml => body }, headers)
+          when :put  then client.put(uri.request_uri, { :xml => body }, headers)
         end
 
         if self.logger
           logger.info("== [#{Time.now.to_s}] XeroGateway Response (#{response.code})")
 
-          unless response.code.to_i == 200
-            logger.info("== #{uri.request_uri} Response Body \n\n #{response.plain_body} \n == End Response Body")
+          unless response.status.to_i == 200
+            logger.info("== #{uri.request_uri} Response Body \n\n #{response.body} \n == End Response Body")
           end
         end
 
-        case response.code.to_i
+        case response.status.to_i
           when 200
             if RUBY_VERSION >= "1.9"
-              response.plain_body.force_encoding("UTF-8")
+              response.body.force_encoding("UTF-8")
             else
-              response.plain_body
+              response.body
             end
           when 400
             handle_error!(body, response)
-          when 401
+          when 401, 429
             handle_oauth_error!(response)
           when 404
             handle_object_not_found!(response, url)
@@ -96,29 +96,25 @@ module XeroGateway
       end
 
       def handle_oauth_error!(response)
-        error_details = CGI.parse(response.plain_body.strip)
-        description   = error_details["oauth_problem_advice"].first
+        error_details = response.parsed
+        description   = error_details["Detail"]
 
-        description = "No description found: #{response.plain_body}" if description.blank?
+        description = "No description found: #{error_details}" if description.blank?
 
-        # see http://oauth.pbworks.com/ProblemReporting
-        # In addition to token_expired and token_rejected, Xero also returns
-        # 'rate limit exceeded' when more than 60 requests have been made in
-        # a second.
-        case (error_details["oauth_problem"].first)
-          when "token_expired"        then raise OAuth::TokenExpired.new(description)
-          when "consumer_key_unknown" then raise OAuth::TokenInvalid.new(description)
-          when "token_rejected"       then raise OAuth::TokenInvalid.new(description)
-          when "rate limit exceeded"  then raise OAuth::RateLimitExceeded.new(description)
+        case (description)
+          when /expired/i then raise OAuth::TokenExpired.new(description)
+          when /unknown/i then raise OAuth::TokenInvalid.new(description)
+          when /rejected/i then raise OAuth::TokenInvalid.new(description)
+          when /rate/ then raise OAuth::RateLimitExceeded.new(description)
           else
-            message = (error_details["oauth_problem"].first || "Unknown Error") + ': ' + description
+            message = "Unknown Error" + ': ' + description
             raise OAuth::UnknownError.new(message)
         end
       end
 
       def handle_error!(request_xml, response)
 
-        raw_response = response.plain_body
+        raw_response = response.body
 
         # Xero Gateway API Exceptions *claim* to be UTF-16 encoded, but fail REXML/Iconv parsing...
         # So let's ignore that :)

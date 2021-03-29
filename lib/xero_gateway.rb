@@ -5,7 +5,8 @@ require "rexml/document"
 require "builder"
 require "bigdecimal"
 require "oauth"
-require 'oauth/signature/rsa/sha1'
+require "oauth2"
+require "oauth/signature/rsa/sha1"
 require "forwardable"
 require "active_support/all"
 require "tempfile"
@@ -44,6 +45,7 @@ require File.join(File.dirname(__FILE__), 'xero_gateway', 'currency')
 require File.join(File.dirname(__FILE__), 'xero_gateway', 'item')
 require File.join(File.dirname(__FILE__), 'xero_gateway', 'error')
 require File.join(File.dirname(__FILE__), 'xero_gateway', 'oauth')
+require File.join(File.dirname(__FILE__), 'xero_gateway', 'oauth2')
 require File.join(File.dirname(__FILE__), 'xero_gateway', 'exceptions')
 require File.join(File.dirname(__FILE__), 'xero_gateway', 'gateway')
 require File.join(File.dirname(__FILE__), 'xero_gateway', 'private_app')

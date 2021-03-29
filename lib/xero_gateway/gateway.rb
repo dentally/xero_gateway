@@ -7,15 +7,15 @@ module XeroGateway
     attr_accessor :client, :xero_url, :payroll_url, :logger
 
     extend Forwardable
-    def_delegators :client, :request_token, :access_token, :authorize_from_request, :authorize_from_access, :expires_at, :authorization_expires_at
+    def_delegators :client, :request_token, :access_token, :authorize_from_request, :authorize_from_access, :renew_access_token, :expires_at, :authorization_expires_at
 
     #
-    # The consumer key and secret here correspond to those provided
+    # The client ID and secret here correspond to those provided
     # to you by Xero inside the API Previewer.
-    def initialize(consumer_key, consumer_secret, options = {})
+    def initialize(client_id, client_secret, options = {})
       @xero_url = options[:xero_url] || "https://api.xero.com/api.xro/2.0"
       @payroll_url = options[:payroll_url] || "https://api.xero.com/payroll.xro/1.0"
-      @client   = OAuth.new(consumer_key, consumer_secret, options)
+      @client = OAuth2.new(client_id, client_secret, options)
     end
 
     #
