@@ -79,8 +79,8 @@ module XeroGateway
 
     # Update instance variables with those from the AccessToken.
     def update_attributes_from_token(token)
-      @expires_at  = Time.at(token.expires_at)
-      @authorization_expires_at = Time.at(token.expires_at)
+      @expires_at  = Time.at(token.expires_at.to_i)
+      @authorization_expires_at = Time.at(token.expires_at.to_i)
       @access_token = token
     end
   end
